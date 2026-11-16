@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block title %}Consultar Acervo - Biblioteca Municipal Professor Sebas{% endblock %}
+
+{% block content %}
+<div class="hero-banner">
+    <div class="hero-icon">🔍</div>
+    <div>
+        <h1>Consultar Acervo</h1>
+        <p>Pesquise livros por título, autor ou gênero e verifique a disponibilidade.</p>
+    </div>
+</div>
+
+<div class="card">
+    <form method="GET" style="display: flex; gap: 10px; margin-bottom: 16px;">
+        <input type="text" name="busca" value="{{ busca }}" placeholder="Digite título, autor ou gênero..." style="flex:1; padding: 10px; border: 1px solid #94a3b8; border-radius: 6px; font-size: 15px;">
+        <button type="submit" class="btn-blue">🔍 Buscar</button>
+    </form>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Título</th>
+                <th>Autor</th>
+                <th>Gênero</th>
+                <th>Quantidade</th>
+                <th>Disponibilidade</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for livro in livros %}
+            <tr>
+                <td>{{ livro.titulo }}</td>
+                <td>{{ livro.autor }}</td>
+                <td>{{ livro.genero }}</td>
+                <td>{{ livro.quantidade }}</td>
+                <td>
+                    {% if livro.quantidade > 0 %}
+                        <span style="background:#dcfce7; color:#15803d; padding:4px 8px; border-radius:12px; font-weight:600; font-size:12px;">✔ Disponível</span>
+                    {% else %}
+                        <span style="background:#fee2e2; color:#b91c1c; padding:4px 8px; border-radius:12px; font-weight:600; font-size:12px;">⚠️ Indisponível</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5">Nenhum livro encontrado para a pesquisa informada.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

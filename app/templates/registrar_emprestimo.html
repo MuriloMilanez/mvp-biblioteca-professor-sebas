@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}Registrar Empréstimo - Biblioteca Municipal Professor Sebas{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-grid { max-width: 540px; }
+    label { display: block; font-weight: 600; font-size: 14px; margin-top: 14px; margin-bottom: 6px; color: #334155; }
+    input, select { width: 100%; padding: 11px; border: 1px solid #94a3b8; border-radius: 6px; font-size: 15px; background: #fff; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hero-banner">
+    <div class="hero-icon">⇄</div>
+    <div>
+        <h1>Registrar Empréstimo</h1>
+        <p>Associe um livro disponível a um leitor e defina os prazos de retirada e devolução.</p>
+    </div>
+</div>
+
+<div class="card">
+    <form method="POST" class="form-grid">
+        <label for="livro_id">Livro Disponível:</label>
+        <select id="livro_id" name="livro_id" required>
+            {% for livro in livros %}
+                <option value="{{ livro.id }}">{{ livro.titulo }} — {{ livro.autor }} ({{ livro.quantidade }} disp.)</option>
+            {% endfor %}
+        </select>
+
+        <label for="usuario">Usuário (Nome do Leitor):</label>
+        <input type="text" id="usuario" name="usuario" required placeholder="Ex: Carlos Alberto de Souza">
+
+        <label for="data_retirada">Data de Retirada:</label>
+        <input type="date" id="data_retirada" name="data_retirada" value="{{ hoje }}" required>
+
+        <label for="data_devolucao">Data de Devolução Prevista:</label>
+        <input type="date" id="data_devolucao" name="data_devolucao" value="{{ devolucao_padrao }}" required>
+
+        <div style="margin-top: 20px;">
+            <button type="submit" class="btn-blue">✔ Confirmar Registro de Empréstimo</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% block title %}Painel Principal - Biblioteca Municipal Professor Sebas{% endblock %}
+
+{% block extra_css %}
+<style>
+    .quick-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px; }
+    .action-btn { background: #005bb5; color: #fff; text-decoration: none; padding: 16px; border-radius: 8px; font-weight: 600; font-size: 15px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+    .action-btn:hover { background: #004488; }
+    .tables-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .card-header h2 { margin: 0; font-size: 17px; color: #0f294a; }
+    .card-header a { font-size: 13px; color: #005bb5; text-decoration: none; font-weight: 600; }
+    @media (max-width: 900px) { .quick-actions, .tables-grid { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hero-banner">
+    <div class="hero-icon">📖</div>
+    <div>
+        <h1>Bem-vindo(a)!</h1>
+        <p>Gerencie o acervo e os empréstimos da Biblioteca Municipal Professor Sebas.</p>
+    </div>
+</div>
+
+<div class="quick-actions">
+    <a href="{{ url_for('main.registrar_livro') }}" class="action-btn">📘 Registrar Livro</a>
+    <a href="{{ url_for('main.registrar_emprestimo') }}" class="action-btn">⇄ Registrar Empréstimo</a>
+    <a href="{{ url_for('main.consultar_acervo') }}" class="action-btn">🔍 Consultar Acervo</a>
+</div>
+
+<div class="tables-grid">
+    <div class="card">
+        <div class="card-header">
+            <h2>📘 Livros</h2>
+            <a href="{{ url_for('main.consultar_acervo') }}">Ver todos →</a>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Título</th>
+                    <th>Autor</th>
+                    <th>Gênero</th>
+                    <th>Quantidade</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for livro in livros %}
+                <tr>
+                    <td>{{ livro.titulo }}</td>
+                    <td>{{ livro.autor }}</td>
+                    <td>{{ livro.genero }}</td>
+                    <td>{{ livro.quantidade }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h2>⇄ Empréstimos</h2>
+            <a href="{{ url_for('main.relatorios') }}">Ver todos →</a>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Livro</th>
+                    <th>Usuário</th>
+                    <th>Data de Retirada</th>
+                    <th>Data de Devolução</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for emp in emprestimos %}
+                <tr>
+                    <td>{{ emp.livro.titulo }}</td>
+                    <td>{{ emp.usuario }}</td>
+                    <td>{{ emp.data_retirada.strftime('%d/%m/%Y') }}</td>
+                    <td>{{ emp.data_devolucao.strftime('%d/%m/%Y') }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
