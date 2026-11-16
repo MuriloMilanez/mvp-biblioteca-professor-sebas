@@ -14,7 +14,7 @@ Acessibilidade (WCAG 2.1 Nível AA): Comunicação de estados baseada em múltip
 
 🛠️ Tecnologias Utilizadas
 
-Linguagem: Python 3.12.
+Linguagem: Python 3.12+.
 Framework Web: Flask 3.0.
 Persistência e ORM: SQLite + SQLAlchemy.
 Qualidade e Testes: Pytest + GitHub Actions (Integração Contínua).
