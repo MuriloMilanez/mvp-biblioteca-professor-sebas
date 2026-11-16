@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta, timezone
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from .models import db, Livro, Emprestimo, agora_utc
+from .services import criar_livro, processar_emprestimo, renovar_emprestimo
 
 main_bp = Blueprint('main', __name__)
 
@@ -67,18 +68,18 @@ def painel():
 @main_bp.route('/registrar-livro', methods=['GET', 'POST'])
 def registrar_livro():
     if request.method == 'POST':
-        titulo = request.form.get('titulo', '').strip()
-        autor = request.form.get('autor', '').strip()
-        genero = request.form.get('genero', '').strip()
-        quantidade = int(request.form.get('quantidade', 1))
+        titulo = request.form.get('titulo', '')
+        autor = request.form.get('autor', '')
+        genero = request.form.get('genero', '')
+        try:
+            quantidade = int(request.form.get('quantidade', 1))
+        except ValueError:
+            quantidade = 0
 
-        if titulo and autor and genero and quantidade > 0:
-            novo_livro = Livro(titulo=titulo, autor=autor, genero=genero, quantidade=quantidade)
-            db.session.add(novo_livro)
-            db.session.commit()
-            flash('Livro registrado no acervo com sucesso!', 'sucesso')
+        sucesso, mensagem = criar_livro(titulo, autor, genero, quantidade)
+        flash(mensagem, 'sucesso' if sucesso else 'erro')
+        if sucesso:
             return redirect(url_for('main.painel'))
-        flash('Preencha todos os campos obrigatórios corretamente.', 'erro')
 
     return render_template('registrar_livro.html', aba='registrar_livro')
 
@@ -87,29 +88,19 @@ def registrar_emprestimo():
     livros_disponiveis = Livro.query.filter(Livro.quantidade > 0).all()
 
     if request.method == 'POST':
-        livro_id = request.form.get('livro_id')
-        usuario = request.form.get('usuario', '').strip()
-        data_retirada_str = request.form.get('data_retirada')
-        data_devolucao_str = request.form.get('data_devolucao')
+        try:
+            livro_id = int(request.form.get('livro_id', 0))
+            usuario = request.form.get('usuario', '')
+            dt_retirada = datetime.strptime(request.form.get('data_retirada', ''), '%Y-%m-%d').replace(tzinfo=timezone.utc)
+            dt_devolucao = datetime.strptime(request.form.get('data_devolucao', ''), '%Y-%m-%d').replace(tzinfo=timezone.utc)
+        except ValueError:
+            flash('Dados de formulário ou datas inválidas.', 'erro')
+            return redirect(url_for('main.registrar_emprestimo'))
 
-        livro = db.session.get(Livro, int(livro_id)) if livro_id else None
-        if livro and livro.quantidade > 0 and usuario and data_retirada_str and data_devolucao_str:
-            dt_retirada = datetime.strptime(data_retirada_str, '%Y-%m-%d').replace(tzinfo=timezone.utc)
-            dt_devolucao = datetime.strptime(data_devolucao_str, '%Y-%m-%d').replace(tzinfo=timezone.utc)
-
-            novo_emp = Emprestimo(
-                livro_id=livro.id,
-                usuario=usuario,
-                data_retirada=dt_retirada,
-                data_devolucao=dt_devolucao
-            )
-            livro.quantidade -= 1
-            db.session.add(novo_emp)
-            db.session.commit()
-            flash('Operação realizada com sucesso!', 'sucesso')
+        sucesso, mensagem = processar_emprestimo(livro_id, usuario, dt_retirada, dt_devolucao)
+        flash(mensagem, 'sucesso' if sucesso else 'erro')
+        if sucesso:
             return redirect(url_for('main.painel'))
-
-        flash('Não foi possível concluir o registro. Verifique a disponibilidade do livro e os dados.', 'erro')
 
     hoje_str = agora_utc().strftime('%Y-%m-%d')
     devolucao_str = (agora_utc() + timedelta(days=14)).strftime('%Y-%m-%d')
@@ -162,9 +153,6 @@ def relatorios():
 
 @main_bp.route('/renovar/<int:emprestimo_id>', methods=['POST'])
 def renovar_prazo(emprestimo_id):
-    emp = db.session.get(Emprestimo, emprestimo_id)
-    if emp and not emp.devolvido:
-        emp.data_devolucao = agora_utc() + timedelta(days=14)
-        db.session.commit()
-        flash('Operação concluída com sucesso!', 'sucesso')
+    sucesso, mensagem = renovar_emprestimo(emprestimo_id)
+    flash(mensagem, 'sucesso' if sucesso else 'erro')
     return redirect(url_for('main.relatorios'))
